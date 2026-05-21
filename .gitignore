@@ -1,0 +1,37 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.py~
+*.so
+*.egg-info/
+.eggs/
+dist/
+build/
+.Python
+.ruff_cache/
+.mypy_cache/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Frappe / bench (do not commit built desk assets from local builds)
+hearth/public/dist/
+
+# Node (if you add frontend tooling later)
+node_modules/
+package-lock.json
+
+# OS / editors
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Local env / secrets (never commit bench site config here)
+.env
+.env.*
+*.pem

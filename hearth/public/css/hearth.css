@@ -1,0 +1,76 @@
+/* Hearth desk theme — calm, minimal, structured */
+
+.hearth-dashboard-page .page-content {
+	background: var(--bg-color);
+}
+
+.hearth-dashboard {
+	padding: 1rem 0 2rem;
+	max-width: 1200px;
+}
+
+.hearth-dashboard-summary {
+	display: flex;
+	gap: 1rem;
+	flex-wrap: wrap;
+	margin-bottom: 1.5rem;
+}
+
+.hearth-stat-card {
+	background: var(--card-bg);
+	border: 1px solid var(--border-color);
+	border-radius: 8px;
+	padding: 1rem 1.25rem;
+	min-width: 200px;
+	flex: 1;
+}
+
+.hearth-stat-label {
+	font-size: 0.8rem;
+	color: var(--text-muted);
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+	margin-bottom: 0.35rem;
+}
+
+.hearth-stat-value {
+	font-size: 1.35rem;
+	font-weight: 600;
+	color: var(--heading-color);
+}
+
+.hearth-dashboard-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+	gap: 1rem;
+}
+
+.hearth-panel {
+	background: var(--card-bg);
+	border: 1px solid var(--border-color);
+	border-radius: 8px;
+	padding: 1rem 1.1rem;
+}
+
+.hearth-panel h4 {
+	margin: 0 0 0.75rem;
+	font-size: 0.95rem;
+	font-weight: 600;
+	color: var(--heading-color);
+}
+
+.hearth-list {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+}
+
+.hearth-list-item {
+	padding: 0.45rem 0;
+	border-bottom: 1px solid var(--border-color);
+	font-size: 0.88rem;
+}
+
+.hearth-list-item:last-child {
+	border-bottom: none;
+}
