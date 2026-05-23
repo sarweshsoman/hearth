@@ -19,6 +19,13 @@ app_include_css = "/assets/hearth/css/hearth.css"
 app_include_js = "/assets/hearth/js/hearth.js"
 
 after_install = "hearth.install.after_install"
+after_migrate = "hearth.install.after_migrate"
+
+doc_events = {
+	"User": {
+		"validate": "hearth.install.validate_hearth_user_modules",
+	},
+}
 
 notification_config = "hearth.notifications.config.get_notification_config"
 

@@ -112,7 +112,14 @@ bench build
 bench --site <your-site> migrate
 ```
 
-Assign the **Hearth User** role to desk users who should access Hearth modules.
+Assign roles on each **User**:
+
+- **Hearth User** (required)
+- **Desk User** (recommended)
+
+The app auto-assigns the **Hearth User** module profile (blocks ERPNext modules, keeps Hearth visible). On save, users with **Hearth User** get **Module Profile** = `Hearth User`.
+
+**User Permissions:** none — do not manually block Hearth modules on the user.
 
 Optional site config:
 
