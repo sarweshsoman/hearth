@@ -5,12 +5,14 @@ import frappe
 from frappe.model.document import Document
 
 from hearth.services.reminder_service import sync_policy_renewal_reminder
+from hearth.utils.premium_frequency import validate_premium_frequency_fields
 
 
 class Policy(Document):
 	def validate(self):
 		if not self.holder:
 			self.holder = frappe.session.user
+		validate_premium_frequency_fields(self)
 
 	def on_update(self):
 		sync_policy_renewal_reminder(self)
