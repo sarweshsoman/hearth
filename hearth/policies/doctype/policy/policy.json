@@ -18,6 +18,8 @@
   "section_break_financial",
   "premium_amount",
   "premium_frequency",
+  "premium_frequency_interval",
+  "premium_frequency_unit",
   "renewal_date",
   "maturity_date",
   "nominee_reference",
@@ -102,7 +104,25 @@
    "fieldname": "premium_frequency",
    "fieldtype": "Select",
    "label": "Premium Frequency",
-   "options": "\nMonthly\nQuarterly\nHalf-Yearly\nYearly\nOne-time"
+   "options": "\nMonthly\nQuarterly\nHalf-Yearly\nYearly\nEvery 2 Years\nEvery 3 Years\nCustom\nOne-time"
+  },
+  {
+   "default": "1",
+   "depends_on": "eval:doc.premium_frequency=='Custom'",
+   "fieldname": "premium_frequency_interval",
+   "fieldtype": "Int",
+   "label": "Every",
+   "mandatory_depends_on": "eval:doc.premium_frequency=='Custom'",
+   "non_negative": 1
+  },
+  {
+   "default": "Years",
+   "depends_on": "eval:doc.premium_frequency=='Custom'",
+   "fieldname": "premium_frequency_unit",
+   "fieldtype": "Select",
+   "label": "Period",
+   "mandatory_depends_on": "eval:doc.premium_frequency=='Custom'",
+   "options": "Months\nYears"
   },
   {
    "fieldname": "renewal_date",
