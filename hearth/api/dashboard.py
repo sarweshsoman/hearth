@@ -44,14 +44,14 @@ def get_dashboard_data() -> dict:
 	)
 
 	assets_overview = frappe.get_all(
-		"Asset",
+		"Hearth Asset",
 		fields=["name", "asset_name", "asset_type", "estimated_value"],
 		order_by="modified desc",
 		limit=10,
 	)
 
 	total_asset_value = frappe.db.sql(
-		"""select coalesce(sum(estimated_value), 0) from `tabAsset`""",
+		"""select coalesce(sum(estimated_value), 0) from `tabHearth Asset`""",
 	)[0][0]
 
 	return {

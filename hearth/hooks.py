@@ -23,7 +23,8 @@ after_migrate = "hearth.install.after_migrate"
 
 doc_events = {
 	"User": {
-		"validate": "hearth.install.validate_hearth_user_modules",
+		"validate": "hearth.install.validate_hearth_user_setup",
+		"on_update": "hearth.install.on_update_hearth_user_setup",
 	},
 }
 
@@ -32,7 +33,7 @@ notification_config = "hearth.notifications.config.get_notification_config"
 permission_query_conditions = {
 	"Circle": "hearth.permissions.circle_access.get_circle_query_conditions",
 	"Policy": "hearth.permissions.circle_access.get_policy_query_conditions",
-	"Asset": "hearth.permissions.circle_access.get_asset_query_conditions",
+	"Hearth Asset": "hearth.permissions.circle_access.get_hearth_asset_query_conditions",
 	"Liability": "hearth.permissions.circle_access.get_liability_query_conditions",
 	"Reminder Rule": "hearth.permissions.circle_access.get_reminder_rule_query_conditions",
 }
@@ -40,7 +41,7 @@ permission_query_conditions = {
 has_permission = {
 	"Circle": "hearth.permissions.circle_access.circle_has_permission",
 	"Policy": "hearth.permissions.circle_access.policy_has_permission",
-	"Asset": "hearth.permissions.circle_access.asset_has_permission",
+	"Hearth Asset": "hearth.permissions.circle_access.hearth_asset_has_permission",
 	"Liability": "hearth.permissions.circle_access.liability_has_permission",
 	"Reminder Rule": "hearth.permissions.circle_access.reminder_rule_has_permission",
 }

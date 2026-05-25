@@ -8,8 +8,8 @@ Uses composition over ERPNext internals: only standard Frappe RBAC hooks.
 
 import frappe
 
-HEARTH_CIRCLE_DOCTYPES = ("Circle", "Policy", "Asset", "Liability", "Reminder Rule")
-HEARTH_LINKED_DOCTYPES = ("Policy", "Asset", "Liability", "Reminder Rule")
+HEARTH_CIRCLE_DOCTYPES = ("Circle", "Policy", "Hearth Asset", "Liability", "Reminder Rule")
+HEARTH_LINKED_DOCTYPES = ("Policy", "Hearth Asset", "Liability", "Reminder Rule")
 
 
 def _escape(value: str) -> str:
@@ -60,11 +60,23 @@ def get_permission_query_conditions(doctype: str, user: str | None = None) -> st
 	return None
 
 
-def _record_owner(doc) -> str:
+def _resolve_user_link(value: str | None, user: str | None = None) -> str | None:
+	"""Resolve Frappe Link-to-User placeholders used as field defaults."""
+	if not value:
+		return None
+	if value == "__user__":
+		return user or frappe.session.user
+	return value
+
+
+def _record_owner(doc, user: str | None = None) -> str:
+	user = user or frappe.session.user
 	if doc.doctype == "Policy":
-		return doc.get("holder") or doc.owner
-	if doc.doctype == "Asset":
-		return doc.get("owner_user") or doc.owner
+		return _resolve_user_link(doc.get("holder"), user) or doc.owner
+	if doc.doctype == "Hearth Asset":
+		return _resolve_user_link(doc.get("owner_user"), user) or doc.owner
+	if doc.doctype == "Circle":
+		return _resolve_user_link(doc.get("owner_user"), user) or doc.owner
 	return doc.owner
 
 
@@ -74,12 +86,12 @@ def has_permission(doc, ptype: str | None = None, user: str | None = None) -> bo
 		return True
 
 	if doc.doctype == "Circle":
-		if doc.owner_user == user:
+		if _resolve_user_link(doc.owner_user, user) == user:
 			return True
 		return any(m.member_user == user for m in doc.members)
 
 	if doc.doctype in HEARTH_LINKED_DOCTYPES:
-		owner = _record_owner(doc)
+		owner = _record_owner(doc, user)
 		if owner == user:
 			return True
 		if not doc.get("circle"):
@@ -102,8 +114,12 @@ def get_policy_query_conditions(user: str | None = None) -> str | None:
 	return get_permission_query_conditions("Policy", user)
 
 
+def get_hearth_asset_query_conditions(user: str | None = None) -> str | None:
+	return get_permission_query_conditions("Hearth Asset", user)
+
+
 def get_asset_query_conditions(user: str | None = None) -> str | None:
-	return get_permission_query_conditions("Asset", user)
+	return get_hearth_asset_query_conditions(user)
 
 
 def get_liability_query_conditions(user: str | None = None) -> str | None:
@@ -122,8 +138,12 @@ def policy_has_permission(doc, ptype=None, user=None):
 	return has_permission(doc, ptype, user)
 
 
-def asset_has_permission(doc, ptype=None, user=None):
+def hearth_asset_has_permission(doc, ptype=None, user=None):
 	return has_permission(doc, ptype, user)
+
+
+def asset_has_permission(doc, ptype=None, user=None):
+	return hearth_asset_has_permission(doc, ptype, user)
 
 
 def liability_has_permission(doc, ptype=None, user=None):

@@ -22,7 +22,7 @@ def _resolve_recipients(rule) -> list[str]:
 	owner = ref.owner
 	if rule.reference_doctype == "Policy" and ref.get("holder"):
 		return list({owner, ref.holder})
-	if rule.reference_doctype == "Asset" and ref.get("owner_user"):
+	if rule.reference_doctype == "Hearth Asset" and ref.get("owner_user"):
 		return list({owner, ref.owner_user})
 	return [owner]
 

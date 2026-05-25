@@ -61,7 +61,7 @@ apps/hearth/hearth/
 | Circle | Circles | Visibility grouping (owner, members, level) |
 | Circle Member | Circles | Child table for circle membership |
 | Policy | Policies | Insurance, mediclaim, pension, obligations |
-| Asset | Assets | Real estate, vehicles, deposits, gold, etc. |
+| Hearth Asset | Hearth Assets | Real estate, vehicles, deposits, gold, etc. |
 | Liability | Liabilities | Loans and EMI tracking |
 | Reminder Rule | Reminders | Scheduled reminders linked to records |
 | Hearth Document Link | Policies | Child table for native File attachments |
@@ -100,7 +100,9 @@ Prerequisites: existing Frappe bench with ERPNext (or Frappe only) and a site.
 
 > **Site / app name collision:** If your site folder is also named `hearth`, Python may resolve the `hearth` package to `sites/hearth` before the app is on `PYTHONPATH`. Run `pip install -e apps/hearth` before `install-app`, or rename the site (e.g. `hearth.local`). `bench new-app hearth` also refuses to run when a site named `hearth` already exists — this app was bootstrapped via Frappe's boilerplate API.
 
-> **ERPNext module collision:** The desk module **Assets** already exists in ERPNext. Hearth uses **Hearth Assets** as the module label (code package `hearth_assets/`) while the DocType remains **Asset**.
+> **ERPNext DocType collision:** Do not name Hearth DocTypes ``Asset`` — ERPNext owns that name and hooks ``is_existing_asset``. Hearth uses **Hearth Asset** instead.
+
+> **ERPNext module collision:** The desk module **Assets** already exists in ERPNext. Hearth uses **Hearth Assets** as the module label (code package `hearth_assets/`) while the DocType is **Hearth Asset**.
 
 ```bash
 cd /path/to/frappe-bench
@@ -112,14 +114,15 @@ bench build
 bench --site <your-site> migrate
 ```
 
-Assign roles on each **User**:
+Assign on each **User** (either approach):
 
-- **Hearth User** (required)
-- **Desk User** (recommended)
+**Option A (recommended):** set **Role Profile** = `Hearth User` — adds **Hearth User** + **Desk User** roles automatically.
 
-The app auto-assigns the **Hearth User** module profile (blocks ERPNext modules, keeps Hearth visible). On save, users with **Hearth User** get **Module Profile** = `Hearth User`.
+**Option B:** add roles manually: **Hearth User** and **Desk User**.
 
-**User Permissions:** none — do not manually block Hearth modules on the user.
+On save, Hearth sets **Module Profile** = `Hearth User` (ERPNext modules hidden, Hearth modules visible). Do not manually block Hearth modules on the user.
+
+**User Permissions:** none.
 
 Optional site config:
 

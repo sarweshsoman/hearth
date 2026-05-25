@@ -5,7 +5,7 @@ import frappe
 from frappe.model.document import Document
 
 
-class Asset(Document):
+class HearthAsset(Document):
 	def before_insert(self):
-		if not self.owner_user:
+		if not self.owner_user or self.owner_user == "__user__":
 			self.owner_user = frappe.session.user

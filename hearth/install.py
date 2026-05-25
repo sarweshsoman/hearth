@@ -3,23 +3,33 @@
 
 import frappe
 
-from hearth.utils.modules import (
-	HEARTH_MODULE_PROFILE,
-	apply_module_profile_to_hearth_users,
-	should_use_hearth_module_profile,
-	sync_hearth_module_profile,
+from hearth.utils.modules import sync_hearth_module_profile
+from hearth.utils.user_setup import (
+	setup_hearth_user,
+	should_apply_hearth_user_setup,
+	sync_all_hearth_users,
+	sync_hearth_role_profile,
+	sync_hearth_workspace,
+	verify_hearth_doctype_permissions,
 )
 
 
 def after_install():
 	_ensure_hearth_role()
+	_ensure_desk_user_role_exists()
 	sync_hearth_module_profile()
-	apply_module_profile_to_hearth_users()
+	sync_hearth_role_profile()
+	verify_hearth_doctype_permissions()
+	sync_hearth_workspace()
+	sync_all_hearth_users()
 
 
 def after_migrate():
 	sync_hearth_module_profile()
-	apply_module_profile_to_hearth_users()
+	sync_hearth_role_profile()
+	verify_hearth_doctype_permissions()
+	sync_hearth_workspace()
+	sync_all_hearth_users()
 
 
 def _ensure_hearth_role():
@@ -30,10 +40,28 @@ def _ensure_hearth_role():
 	role.insert(ignore_permissions=True)
 
 
-def validate_hearth_user_modules(doc, method=None):
-	"""Ensure Hearth User accounts can see Hearth workspaces (module profile)."""
-	if not should_use_hearth_module_profile(doc):
+def _ensure_desk_user_role_exists():
+	"""Desk User is required for desk access alongside Hearth User."""
+	if not frappe.db.exists("Role", "Desk User"):
+		frappe.get_doc({"doctype": "Role", "role_name": "Desk User", "desk_access": 1}).insert(
+			ignore_permissions=True
+		)
+
+
+def validate_hearth_user_setup(doc, method=None):
+	"""When Hearth User is assigned, apply role profile, Desk User, and module access."""
+	if not should_apply_hearth_user_setup(doc):
 		return
 
-	if doc.module_profile != HEARTH_MODULE_PROFILE:
-		doc.module_profile = HEARTH_MODULE_PROFILE
+	setup_hearth_user(doc)
+
+
+def on_update_hearth_user_setup(doc, method=None):
+	"""Re-apply module blocks after save when roles/module profile change."""
+	if not should_apply_hearth_user_setup(doc):
+		return
+
+	from hearth.utils.user_setup import apply_hearth_user_block_modules
+
+	if doc.module_profile:
+		apply_hearth_user_block_modules(doc.name)
