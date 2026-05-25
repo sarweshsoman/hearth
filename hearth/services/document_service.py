@@ -13,7 +13,7 @@ def get_recent_linked_documents(limit: int = 10) -> list[dict]:
 		select
 			hdl.title,
 			hdl.attachment,
-			hdl.category,
+			hdl.notes,
 			hdl.parenttype,
 			hdl.parent,
 			hdl.modified

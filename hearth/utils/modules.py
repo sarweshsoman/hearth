@@ -111,7 +111,6 @@ def apply_module_profile_to_hearth_users() -> None:
 
 
 def should_use_hearth_module_profile(user_doc) -> bool:
-	if user_doc.name in ("Administrator", "Guest"):
-		return False
-	roles = {r.role for r in user_doc.roles}
-	return "Hearth User" in roles and "System Manager" not in roles
+	from hearth.utils.user_setup import should_apply_hearth_user_setup
+
+	return should_apply_hearth_user_setup(user_doc)

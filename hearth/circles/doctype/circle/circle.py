@@ -15,5 +15,5 @@ class Circle(Document):
 				frappe.throw(_("Only the circle owner can modify circle membership."))
 
 	def before_insert(self):
-		if not self.owner_user:
+		if not self.owner_user or self.owner_user == "__user__":
 			self.owner_user = frappe.session.user
