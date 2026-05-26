@@ -16,6 +16,15 @@ def _escape(value: str) -> str:
 	return frappe.db.escape(value)
 
 
+def _has_field(doctype: str, fieldname: str) -> bool:
+	if not frappe.db.table_exists(doctype):
+		return False
+	try:
+		return bool(frappe.db.has_column(doctype, fieldname))
+	except Exception:
+		return False
+
+
 def get_accessible_circles(user: str | None = None) -> list[str]:
 	user = user or frappe.session.user
 	if user == "Administrator" or "System Manager" in frappe.get_roles(user):
@@ -51,11 +60,27 @@ def get_permission_query_conditions(doctype: str, user: str | None = None) -> st
 	if doctype in HEARTH_LINKED_DOCTYPES:
 		circles = get_accessible_circles(user)
 		circle_list = ", ".join(_escape(c) for c in circles) if circles else "''"
-		return (
+		base = (
 			f"(`tab{doctype}`.owner = {_escape(user)} "
-			f"or (`tab{doctype}`.circle in ({circle_list})) "
-			f"or (`tab{doctype}`.circle is null and `tab{doctype}`.owner = {_escape(user)}))"
+			f"or (`tab{doctype}`.circle in ({circle_list}))"
 		)
+
+		# Private records (circle is NULL) remain visible only to creator (doc.owner),
+		# unless explicitly transferred to the target user.
+		if doctype == "Policy" and _has_field("Policy", "ownership_transferred"):
+			transferred_clause = (
+				f"or (`tabPolicy`.circle is null and coalesce(`tabPolicy`.ownership_transferred, 0) = 1 "
+				f"and `tabPolicy`.holder = {_escape(user)})"
+			)
+		elif doctype in ("Hearth Asset", "Liability") and _has_field(doctype, "ownership_transferred"):
+			transferred_clause = (
+				f"or (`tab{doctype}`.circle is null and coalesce(`tab{doctype}`.ownership_transferred, 0) = 1 "
+				f"and `tab{doctype}`.owner_user = {_escape(user)})"
+			)
+		else:
+			transferred_clause = ""
+
+		return f"{base} {transferred_clause})"
 
 	return None
 
@@ -72,10 +97,29 @@ def _resolve_user_link(value: str | None, user: str | None = None) -> str | None
 def _record_owner(doc, user: str | None = None) -> str:
 	user = user or frappe.session.user
 	if doc.doctype == "Policy":
+		# For private records, do not treat holder as owner until transferred.
+		if not doc.get("circle") and not doc.get("ownership_transferred") and doc.get("holder") and doc.holder != doc.owner:
+			return doc.owner
 		return _resolve_user_link(doc.get("holder"), user) or doc.owner
 	if doc.doctype == "Hearth Asset":
+		if (
+			not doc.get("circle")
+			and not doc.get("ownership_transferred")
+			and doc.get("owner_user")
+			and _resolve_user_link(doc.owner_user, user) != doc.owner
+		):
+			return doc.owner
 		return _resolve_user_link(doc.get("owner_user"), user) or doc.owner
 	if doc.doctype == "Circle":
+		return _resolve_user_link(doc.get("owner_user"), user) or doc.owner
+	if doc.doctype == "Liability":
+		if (
+			not doc.get("circle")
+			and not doc.get("ownership_transferred")
+			and doc.get("owner_user")
+			and _resolve_user_link(doc.owner_user, user) != doc.owner
+		):
+			return doc.owner
 		return _resolve_user_link(doc.get("owner_user"), user) or doc.owner
 	return doc.owner
 
@@ -91,17 +135,24 @@ def has_permission(doc, ptype: str | None = None, user: str | None = None) -> bo
 		return any(m.member_user == user for m in doc.members)
 
 	if doc.doctype in HEARTH_LINKED_DOCTYPES:
-		owner = _record_owner(doc, user)
-		if owner == user:
+		# Circle sharing: full access for any circle member.
+		if doc.get("circle"):
+			return doc.circle in get_accessible_circles(user)
+
+		# No-circle records are private to creator (doc.owner) until transferred.
+		if doc.owner == user:
 			return True
-		if not doc.get("circle"):
-			return owner == user
-		if doc.circle not in get_accessible_circles(user):
+
+		if not doc.get("ownership_transferred"):
 			return False
-		if ptype in ("write", "create", "delete") and owner != user:
-			circle_owner = frappe.db.get_value("Circle", doc.circle, "owner_user")
-			return user == circle_owner
-		return True
+
+		# After transfer, allow the target user to access the record even if they did not create it.
+		if doc.doctype == "Policy":
+			return doc.get("holder") == user
+		if doc.doctype in ("Hearth Asset", "Liability"):
+			return _resolve_user_link(doc.get("owner_user"), user) == user
+
+		return False
 
 	return False
 

@@ -29,45 +29,74 @@ class HearthDashboard {
 	build_html(data) {
 		return `
 			<div class="hearth-dashboard">
-				<div class="hearth-dashboard-summary">
-					<div class="hearth-stat-card">
-						<div class="hearth-stat-label">${__("Total Asset Value")}</div>
-						<div class="hearth-stat-value">${format_currency(data.total_asset_value)}</div>
-					</div>
-					<div class="hearth-stat-card">
-						<div class="hearth-stat-label">${__("Reminder Window")}</div>
-						<div class="hearth-stat-value">${data.reminder_lead_days} ${__("days")}</div>
-					</div>
+				<div class="hearth-dashboard-hero">
+					${this.stat_card(__("Total Asset Value"), format_currency(data.total_asset_value), true)}
+					${this.stat_card(
+						__("Transferable Assets Value"),
+						format_currency(data.transferable_assets_value),
+						true
+					)}
 				</div>
-				<div class="hearth-dashboard-grid">
-					${this.section(__("Upcoming Renewals"), data.upcoming_renewals, (row) =>
-						`${row.policy_name} · ${row.renewal_date || ""}`
+				<div class="hearth-dashboard-metrics">
+					${this.stat_card(__("Tracked Assets"), data.asset_count || 0)}
+					${this.stat_card(__("Policies"), data.policy_count || 0)}
+					${this.stat_card(__("Liabilities"), data.liability_count || 0)}
+				</div>
+				<div class="hearth-dashboard-panels">
+					${this.section(__("Assets Owned"), data.owned_assets, (row) => {
+						const circle = row.circle ? ` · ${row.circle}` : "";
+						const type = row.asset_type ? ` · ${row.asset_type}` : "";
+						return `${row.asset_name}${type}${circle} · ${format_currency(row.estimated_value || 0)}`;
+					})}
+					${this.section(
+						__("Transferable Assets"),
+						data.transferable_assets,
+						(row) =>
+							`${row.asset_name} · ${row.owner_user || ""} · ${format_currency(row.estimated_value || 0)}`
 					)}
-					${this.section(__("Expiring Policies"), data.expiring_policies, (row) =>
-						`${row.policy_name} · ${row.maturity_date || ""}`
+					${this.section(
+						__("Upcoming Renewals"),
+						data.upcoming_renewals,
+						(row) => `${row.policy_name} · ${row.renewal_date || ""}`,
+						__("Nothing scheduled")
 					)}
-					${this.section(__("Liabilities Due"), data.liabilities_due, (row) =>
-						`${row.liability_name} · ${row.due_date || ""}`
+					${this.section(
+						__("Expiring Policies"),
+						data.expiring_policies,
+						(row) => `${row.policy_name} · ${row.maturity_date || ""}`,
+						__("Nothing scheduled")
 					)}
-					${this.section(__("Assets Overview"), data.assets_overview, (row) =>
-						`${row.asset_name} · ${format_currency(row.estimated_value || 0)}`
-					)}
-					${this.section(__("Recent Documents"), data.recent_documents, (row) =>
-						`${row.title || row.attachment} · ${row.parenttype}`
+				</div>
+				<div class="hearth-dashboard-panels-bottom">
+					${this.section(
+						__("Liabilities Due"),
+						data.liabilities_due,
+						(row) => `${row.liability_name} · ${row.due_date || ""}`,
+						__("Nothing scheduled")
 					)}
 				</div>
 			</div>
 		`;
 	}
 
-	section(title, rows, formatter) {
+	stat_card(label, value, hero = false) {
+		const heroClass = hero ? " hearth-stat-card--hero" : "";
+		return `
+			<div class="hearth-stat-card${heroClass}">
+				<div class="hearth-stat-label">${label}</div>
+				<div class="hearth-stat-value">${value}</div>
+			</div>
+		`;
+	}
+
+	section(title, rows, formatter, emptyText = __("None")) {
 		const items =
 			rows && rows.length
 				? rows.map((row) => `<li class="hearth-list-item">${frappe.utils.escape_html(formatter(row))}</li>`).join("")
-				: `<li class="hearth-list-item text-muted">${__("Nothing scheduled")}</li>`;
+				: `<li class="hearth-list-item text-muted">${emptyText}</li>`;
 		return `
 			<div class="hearth-panel">
-				<h4>${title}</h4>
+				<h4 class="hearth-panel-title">${title}</h4>
 				<ul class="hearth-list">${items}</ul>
 			</div>
 		`;

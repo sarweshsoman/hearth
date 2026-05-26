@@ -13,6 +13,8 @@
   "policy_number",
   "column_break_1",
   "holder",
+  "ownership_transferred",
+  "transferred_on",
   "status",
   "circle",
   "section_break_financial",
@@ -72,6 +74,19 @@
    "fieldtype": "Link",
    "label": "Holder",
    "options": "User"
+  },
+  {
+   "default": "0",
+   "fieldname": "ownership_transferred",
+   "fieldtype": "Check",
+   "label": "Ownership Transferred",
+   "read_only": 1
+  },
+  {
+   "fieldname": "transferred_on",
+   "fieldtype": "Datetime",
+   "label": "Transferred On",
+   "read_only": 1
   },
   {
    "default": "Active",

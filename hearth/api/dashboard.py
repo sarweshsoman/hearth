@@ -4,7 +4,7 @@
 import frappe
 from frappe.utils import add_days, today
 
-from hearth.services.document_service import get_recent_linked_documents
+from hearth.services.asset_visibility import get_asset_dashboard_totals
 from hearth.services.reminder_service import get_reminder_lead_days
 
 
@@ -13,7 +13,7 @@ def get_dashboard_data() -> dict:
 	lead_days = get_reminder_lead_days()
 	horizon = add_days(today(), lead_days)
 
-	upcoming_renewals = frappe.get_all(
+	upcoming_renewals = frappe.get_list(
 		"Policy",
 		filters={
 			"status": ["in", ["Active", "Pending Renewal"]],
@@ -21,10 +21,10 @@ def get_dashboard_data() -> dict:
 		},
 		fields=["name", "policy_name", "renewal_date", "provider", "status"],
 		order_by="renewal_date asc",
-		limit=10,
+		limit_page_length=10,
 	)
 
-	expiring_policies = frappe.get_all(
+	expiring_policies = frappe.get_list(
 		"Policy",
 		filters={
 			"status": "Active",
@@ -32,34 +32,22 @@ def get_dashboard_data() -> dict:
 		},
 		fields=["name", "policy_name", "maturity_date", "provider"],
 		order_by="maturity_date asc",
-		limit=10,
+		limit_page_length=10,
 	)
 
-	liabilities_due = frappe.get_all(
+	liabilities_due = frappe.get_list(
 		"Liability",
 		filters={"status": ["!=", "Closed"], "due_date": ["between", [today(), horizon]]},
 		fields=["name", "liability_name", "due_date", "emi_amount", "lender"],
 		order_by="due_date asc",
-		limit=10,
+		limit_page_length=10,
 	)
 
-	assets_overview = frappe.get_all(
-		"Hearth Asset",
-		fields=["name", "asset_name", "asset_type", "estimated_value"],
-		order_by="modified desc",
-		limit=10,
-	)
-
-	total_asset_value = frappe.db.sql(
-		"""select coalesce(sum(estimated_value), 0) from `tabHearth Asset`""",
-	)[0][0]
+	asset_totals = get_asset_dashboard_totals()
 
 	return {
 		"upcoming_renewals": upcoming_renewals,
 		"expiring_policies": expiring_policies,
 		"liabilities_due": liabilities_due,
-		"recent_documents": get_recent_linked_documents(8),
-		"assets_overview": assets_overview,
-		"total_asset_value": total_asset_value,
-		"reminder_lead_days": lead_days,
+		**asset_totals,
 	}
