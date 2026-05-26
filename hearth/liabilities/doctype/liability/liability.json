@@ -10,6 +10,9 @@
   "liability_name",
   "liability_type",
   "lender",
+  "owner_user",
+  "ownership_transferred",
+  "transferred_on",
   "linked_hearth_asset",
   "column_break_1",
   "amount",
@@ -53,6 +56,27 @@
    "fieldtype": "Data",
    "in_list_view": 1,
    "label": "Lender / Provider"
+  },
+  {
+   "fieldname": "owner_user",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Owner",
+   "options": "User",
+   "reqd": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "ownership_transferred",
+   "fieldtype": "Check",
+   "label": "Ownership Transferred",
+   "read_only": 1
+  },
+  {
+   "fieldname": "transferred_on",
+   "fieldtype": "Datetime",
+   "label": "Transferred On",
+   "read_only": 1
   },
   {
    "description": "Optional link to the asset this obligation relates to (e.g. home loan → house, maintenance → property).",

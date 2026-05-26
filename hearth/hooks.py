@@ -15,7 +15,7 @@ add_to_apps_screen = [
 	}
 ]
 
-app_include_css = "/assets/hearth/css/hearth.css"
+app_include_css = ["/assets/hearth/css/hearth.css", "/assets/hearth/css/hearth_dashboard.css"]
 app_include_js = "/assets/hearth/js/hearth.js"
 
 after_install = "hearth.install.after_install"

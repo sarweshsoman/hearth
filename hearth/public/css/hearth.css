@@ -1,61 +1,142 @@
 /* Hearth desk theme — calm, minimal, structured */
 
+/* Desktop layout is default; stack only on small mobile (see end of file). */
+.hearth-dashboard-page .page-content,
+.hearth-dashboard-page .layout-main-section {
+	width: 100%;
+	max-width: 100%;
+	box-sizing: border-box;
+}
+
 .hearth-dashboard-page .page-content {
 	background: var(--bg-color);
 }
 
 .hearth-dashboard {
-	padding: 1rem 0 2rem;
-	max-width: 1200px;
+	padding: 1.25rem 1.5rem 2.5rem;
+	width: 100%;
+	max-width: 100%;
+	box-sizing: border-box;
 }
 
-.hearth-dashboard-summary {
-	display: flex;
+/* Row 1: Total + Transferable value — 50% / 50% */
+.hearth-dashboard-hero {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
 	gap: 1rem;
-	flex-wrap: wrap;
+	margin-bottom: 1rem;
+}
+
+/* Row 2: Tracked assets, Policies, Liabilities — 33% / 33% / 33% */
+.hearth-dashboard-metrics {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr);
+	gap: 1rem;
 	margin-bottom: 1.5rem;
+}
+
+/* Rows 3–4: four panels — 50% / 50% (2×2) */
+.hearth-dashboard-panels {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+	gap: 1rem;
+	margin-bottom: 1rem;
+}
+
+/* Row 5: Liabilities due — centred 50% width */
+.hearth-dashboard-panels-bottom {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+	gap: 1rem;
+}
+
+.hearth-dashboard-panels-bottom .hearth-panel {
+	grid-column: 1 / -1;
+	width: 50%;
+	justify-self: center;
+	min-width: 0;
+	box-sizing: border-box;
+}
+
+.hearth-dashboard-hero > *,
+.hearth-dashboard-metrics > *,
+.hearth-dashboard-panels > *,
+.hearth-dashboard-panels-bottom > * {
+	min-width: 0;
 }
 
 .hearth-stat-card {
 	background: var(--card-bg);
 	border: 1px solid var(--border-color);
-	border-radius: 8px;
-	padding: 1rem 1.25rem;
-	min-width: 200px;
-	flex: 1;
+	border-radius: 10px;
+	padding: 1.1rem 1.35rem;
+	box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+
+.hearth-stat-card--hero {
+	padding: 1.25rem 1.5rem;
+}
+
+.hearth-stat-card--hero:first-child {
+	border-color: color-mix(in srgb, var(--primary) 35%, var(--border-color));
+	background: linear-gradient(
+		145deg,
+		color-mix(in srgb, var(--primary) 6%, var(--card-bg)) 0%,
+		var(--card-bg) 55%
+	);
+}
+
+.hearth-stat-card--hero:last-child {
+	border-color: color-mix(in srgb, var(--orange-500, #f59e0b) 40%, var(--border-color));
+	background: linear-gradient(
+		145deg,
+		color-mix(in srgb, var(--orange-500, #f59e0b) 8%, var(--card-bg)) 0%,
+		var(--card-bg) 55%
+	);
+}
+
+.hearth-stat-card--hero .hearth-stat-value {
+	font-size: 1.65rem;
 }
 
 .hearth-stat-label {
-	font-size: 0.8rem;
-	color: var(--text-muted);
+	font-size: 0.75rem;
+	font-weight: 600;
 	text-transform: uppercase;
-	letter-spacing: 0.04em;
-	margin-bottom: 0.35rem;
+	letter-spacing: 0.05em;
+	margin-bottom: 0.4rem;
+	color: var(--text-muted);
 }
 
 .hearth-stat-value {
 	font-size: 1.35rem;
-	font-weight: 600;
+	font-weight: 700;
+	line-height: 1.2;
 	color: var(--heading-color);
-}
-
-.hearth-dashboard-grid {
-	display: grid;
-	grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-	gap: 1rem;
 }
 
 .hearth-panel {
 	background: var(--card-bg);
 	border: 1px solid var(--border-color);
-	border-radius: 8px;
-	padding: 1rem 1.1rem;
+	border-radius: 10px;
+	padding: 1rem 1.2rem;
+	min-height: 160px;
+	box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+	display: flex;
+	flex-direction: column;
 }
 
-.hearth-panel h4 {
+.hearth-panel .hearth-list {
+	flex: 1;
+	max-height: 220px;
+	overflow-y: auto;
+}
+
+.hearth-panel-title {
 	margin: 0 0 0.75rem;
 	font-size: 0.95rem;
-	font-weight: 600;
+	font-weight: 700;
+	letter-spacing: 0.02em;
 	color: var(--heading-color);
 }
 
@@ -66,11 +147,45 @@
 }
 
 .hearth-list-item {
-	padding: 0.45rem 0;
+	padding: 0.5rem 0;
 	border-bottom: 1px solid var(--border-color);
-	font-size: 0.88rem;
+	font-size: 0.875rem;
+	line-height: 1.45;
+	color: var(--text-color);
 }
 
 .hearth-list-item:last-child {
 	border-bottom: none;
+}
+
+.hearth-dashboard-loading {
+	padding: 2rem;
+	text-align: center;
+}
+
+/* Mobile only — do not stack on tablet / narrow desk windows */
+@media (max-width: 576px) {
+	.hearth-dashboard {
+		padding: 1rem;
+	}
+
+	.hearth-dashboard-hero,
+	.hearth-dashboard-metrics,
+	.hearth-dashboard-panels {
+		grid-template-columns: minmax(0, 1fr);
+	}
+
+	.hearth-dashboard-panels-bottom {
+		grid-template-columns: minmax(0, 1fr);
+	}
+
+	.hearth-dashboard-panels-bottom .hearth-panel {
+		grid-column: 1;
+		width: 100%;
+		justify-self: stretch;
+	}
+
+	.hearth-stat-card--hero .hearth-stat-value {
+		font-size: 1.4rem;
+	}
 }

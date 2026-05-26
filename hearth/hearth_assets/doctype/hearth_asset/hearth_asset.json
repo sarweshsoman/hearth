@@ -10,6 +10,8 @@
   "asset_name",
   "asset_type",
   "owner_user",
+  "ownership_transferred",
+  "transferred_on",
   "column_break_1",
   "estimated_value",
   "acquisition_date",
@@ -44,13 +46,25 @@
    "reqd": 1
   },
   {
-   "default": "__user__",
    "fieldname": "owner_user",
    "fieldtype": "Link",
    "in_list_view": 1,
    "label": "Owner",
    "options": "User",
    "reqd": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "ownership_transferred",
+   "fieldtype": "Check",
+   "label": "Ownership Transferred",
+   "read_only": 1
+  },
+  {
+   "fieldname": "transferred_on",
+   "fieldtype": "Datetime",
+   "label": "Transferred On",
+   "read_only": 1
   },
   {
    "fieldname": "column_break_1",
