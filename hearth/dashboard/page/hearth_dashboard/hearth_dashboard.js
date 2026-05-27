@@ -74,6 +74,7 @@ class HearthDashboard {
 						(row) => `${row.liability_name} · ${row.due_date || ""}`,
 						__("Nothing scheduled")
 					)}
+					${this.document_section(__("Recent Documents"), data.recent_documents)}
 				</div>
 			</div>
 		`;
@@ -94,6 +95,29 @@ class HearthDashboard {
 			rows && rows.length
 				? rows.map((row) => `<li class="hearth-list-item">${frappe.utils.escape_html(formatter(row))}</li>`).join("")
 				: `<li class="hearth-list-item text-muted">${emptyText}</li>`;
+		return `
+			<div class="hearth-panel">
+				<h4 class="hearth-panel-title">${title}</h4>
+				<ul class="hearth-list">${items}</ul>
+			</div>
+		`;
+	}
+
+	document_section(title, rows) {
+		if (!rows || !rows.length) {
+			return this.section(title, [], () => "", __("No documents yet"));
+		}
+
+		const items = rows
+			.map((row) => {
+				const label = row.title || row.attachment || row.parent;
+				const route = frappe.utils.get_form_link(row.parenttype, row.parent, true);
+				return `<li class="hearth-list-item"><a href="${route}">${frappe.utils.escape_html(
+					label
+				)}</a> · ${frappe.utils.escape_html(row.parenttype)}</li>`;
+			})
+			.join("");
+
 		return `
 			<div class="hearth-panel">
 				<h4 class="hearth-panel-title">${title}</h4>

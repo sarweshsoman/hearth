@@ -15,6 +15,24 @@ def get_reminder_lead_days() -> int:
 	return int(frappe.conf.get("hearth_reminder_days_before") or DEFAULT_REMINDER_DAYS_BEFORE)
 
 
+def cancel_active_reminders(
+	reference_doctype: str,
+	reference_name: str,
+	reminder_type: str | None = None,
+) -> None:
+	"""Cancel active reminder rules for a reference record."""
+	filters = {
+		"reference_doctype": reference_doctype,
+		"reference_name": reference_name,
+		"status": "Active",
+	}
+	if reminder_type:
+		filters["reminder_type"] = reminder_type
+
+	for name in frappe.get_all("Reminder Rule", filters=filters, pluck="name"):
+		frappe.db.set_value("Reminder Rule", name, "status", "Cancelled", update_modified=True)
+
+
 def _upsert_reminder_rule(
 	reference_doctype: str,
 	reference_name: str,
@@ -61,12 +79,14 @@ def _upsert_reminder_rule(
 
 def sync_policy_renewal_reminder(policy) -> None:
 	if not policy.renewal_date or policy.status in ("Expired", "Cancelled"):
+		cancel_active_reminders("Policy", policy.name, "Renewal")
 		return
 	_upsert_reminder_rule("Policy", policy.name, "Renewal", policy.renewal_date)
 
 
 def sync_liability_emi_reminder(liability) -> None:
 	if not liability.due_date or liability.status == "Closed":
+		cancel_active_reminders("Liability", liability.name, "EMI Due")
 		return
 	_upsert_reminder_rule("Liability", liability.name, "EMI Due", liability.due_date, recurrence="Monthly")
 
@@ -107,6 +127,7 @@ def scan_expiring_policies() -> None:
 		pluck="name",
 	):
 		doc = frappe.get_doc("Policy", policy)
+		cancel_active_reminders("Policy", doc.name, "Renewal")
 		doc.status = "Expired"
 		doc.save(ignore_permissions=True)
 		if doc.maturity_date:

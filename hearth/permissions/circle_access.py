@@ -85,13 +85,52 @@ def get_permission_query_conditions(doctype: str, user: str | None = None) -> st
 	return None
 
 
-def _resolve_user_link(value: str | None, user: str | None = None) -> str | None:
+def resolve_user_link(value: str | None, user: str | None = None) -> str | None:
 	"""Resolve Frappe Link-to-User placeholders used as field defaults."""
 	if not value:
 		return None
 	if value == "__user__":
 		return user or frappe.session.user
 	return value
+
+
+def _resolve_user_link(value: str | None, user: str | None = None) -> str | None:
+	return resolve_user_link(value, user)
+
+
+def get_circle_recipients(circle_name: str) -> list[str]:
+	"""Return circle owner and member users for notifications."""
+	if not circle_name or not frappe.db.exists("Circle", circle_name):
+		return []
+
+	circle = frappe.get_doc("Circle", circle_name)
+	recipients: set[str] = set()
+	owner = resolve_user_link(circle.owner_user)
+	if owner:
+		recipients.add(owner)
+	for member in circle.members:
+		if member.member_user:
+			recipients.add(member.member_user)
+	return sorted(recipients)
+
+
+def get_circle_owner(circle_name: str | None, user: str | None = None) -> str | None:
+	if not circle_name:
+		return None
+	owner_user = frappe.db.get_value("Circle", circle_name, "owner_user")
+	return resolve_user_link(owner_user, user)
+
+
+def _can_write_circle_record(doc, user: str | None = None) -> bool:
+	user = user or frappe.session.user
+	if doc.owner == user:
+		return True
+	return get_circle_owner(doc.get("circle"), user) == user
+
+
+def _has_circle_read_access(doc, user: str | None = None) -> bool:
+	user = user or frappe.session.user
+	return bool(doc.get("circle") and doc.circle in get_accessible_circles(user))
 
 
 def _record_owner(doc, user: str | None = None) -> str:
@@ -135,9 +174,13 @@ def has_permission(doc, ptype: str | None = None, user: str | None = None) -> bo
 		return any(m.member_user == user for m in doc.members)
 
 	if doc.doctype in HEARTH_LINKED_DOCTYPES:
-		# Circle sharing: full access for any circle member.
+		# Circle sharing: members can read; write/delete limited to record or circle owner.
 		if doc.get("circle"):
-			return doc.circle in get_accessible_circles(user)
+			if not _has_circle_read_access(doc, user):
+				return False
+			if ptype in ("write", "delete", "submit", "cancel", "amend"):
+				return _can_write_circle_record(doc, user)
+			return True
 
 		# No-circle records are private to creator (doc.owner) until transferred.
 		if doc.owner == user:
