@@ -5,6 +5,7 @@ import frappe
 from frappe.utils import add_days, today
 
 from hearth.services.asset_visibility import get_asset_dashboard_totals
+from hearth.services.document_service import get_recent_linked_documents
 from hearth.services.reminder_service import get_reminder_lead_days
 
 
@@ -44,10 +45,12 @@ def get_dashboard_data() -> dict:
 	)
 
 	asset_totals = get_asset_dashboard_totals()
+	recent_documents = get_recent_linked_documents(limit=10)
 
 	return {
 		"upcoming_renewals": upcoming_renewals,
 		"expiring_policies": expiring_policies,
 		"liabilities_due": liabilities_due,
+		"recent_documents": recent_documents,
 		**asset_totals,
 	}

@@ -70,7 +70,7 @@ apps/hearth/hearth/
 
 - Policy saves sync **Renewal** reminder rules (lead window configurable via `hearth_reminder_days_before` in `site_config.json`, default 30 days).
 - Liability saves sync **EMI Due** monthly reminders.
-- Daily scheduler runs `hearth.hooks.scheduler.daily` → processes due rules and scans expiring policies.
+- Daily scheduler runs `hearth.scheduled_tasks.scheduler.daily` → processes due rules and scans expiring policies.
 - Notifications: email (`frappe.sendmail`) and in-app (`Notification Log`).
 
 ### Permissions
@@ -78,8 +78,8 @@ apps/hearth/hearth/
 Circle-based visibility is implemented in `hearth.permissions.circle_access`:
 
 - Record owner always has access.
-- Records linked to a Circle are visible to circle owner and members.
-- Write/delete on shared circle records is limited to record owner or circle owner.
+- Records linked to a Circle are visible to circle owner and members (read).
+- Write/delete on shared circle records is limited to the record owner or circle owner.
 
 Uses standard Frappe `permission_query_conditions` and `has_permission` hooks only.
 

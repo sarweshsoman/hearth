@@ -3,7 +3,7 @@
 
 import frappe
 
-from hearth.install import apply_module_profile_to_hearth_users, sync_hearth_module_profile
+from hearth.utils.modules import apply_module_profile_to_hearth_users, sync_hearth_module_profile
 
 
 def execute():
