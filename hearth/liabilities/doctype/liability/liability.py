@@ -3,7 +3,8 @@
 
 import frappe
 from frappe.model.document import Document
-from frappe.utils import now_datetime
+
+from hearth.services.ownership_transfer import execute_transfer
 
 from hearth.services.reminder_service import sync_liability_emi_reminder
 
@@ -18,29 +19,6 @@ class Liability(Document):
 
 
 @frappe.whitelist()
-def transfer_now(name: str) -> None:
+def transfer_now(name: str, owner_user: str | None = None) -> dict:
 	"""Make a private (no-circle) record visible to the selected owner_user."""
-	doc = frappe.get_doc("Liability", name)
-
-	if doc.get("circle"):
-		frappe.throw(frappe._("Transfer is only available when no Circle is selected."))
-	if doc.owner != frappe.session.user:
-		frappe.throw(frappe._("Only the creator can transfer this record."))
-	if not doc.get("owner_user") or doc.owner_user == doc.owner:
-		frappe.throw(frappe._("Select a different Owner to transfer this record."))
-
-	if not frappe.db.table_exists("Liability") or not frappe.db.has_column(
-		"Liability", "ownership_transferred"
-	):
-		frappe.throw(
-			frappe._("Run bench migrate to enable ownership transfer."),
-			title=frappe._("Migration Required"),
-		)
-
-	doc.db_set(
-		{
-			"ownership_transferred": 1,
-			"transferred_on": now_datetime(),
-		},
-		update_modified=True,
-	)
+	return execute_transfer("Liability", name, owner_user=owner_user)

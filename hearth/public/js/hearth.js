@@ -23,6 +23,22 @@ hearth._is_empty = function (value) {
 	return value === undefined || value === null || value === "";
 };
 
+hearth._current_holder = function (frm, owner_field) {
+	if (frm.doc.ownership_transferred) {
+		return frm.doc[owner_field];
+	}
+	return frm.doc.owner;
+};
+
+hearth._can_initiate_transfer = function (frm, owner_field) {
+	if (frm.doc.owner === frappe.session.user) {
+		return true;
+	}
+	return (
+		!!frm.doc.ownership_transferred && frm.doc[owner_field] === frappe.session.user
+	);
+};
+
 hearth.can_show_transfer_button = function (frm, owner_field) {
 	if (frm.is_new()) {
 		return false;
@@ -31,12 +47,20 @@ hearth.can_show_transfer_button = function (frm, owner_field) {
 		return false;
 	}
 
-	const designated = frm.doc[owner_field];
-	if (hearth._is_empty(designated) || designated === frappe.session.user) {
+	const target = frm.doc[owner_field];
+	if (hearth._is_empty(target)) {
 		return false;
 	}
 
-	// Anyone who can write the open document may initiate transfer (server validates owner).
+	if (!hearth._can_initiate_transfer(frm, owner_field)) {
+		return false;
+	}
+
+	const current = hearth._current_holder(frm, owner_field);
+	if (target === current) {
+		return false;
+	}
+
 	if (typeof frm.has_perm === "function" && frm.has_perm("write")) {
 		return true;
 	}
@@ -63,7 +87,8 @@ hearth.run_transfer = function (frm, owner_field, transfer_method) {
 					indicator: "green",
 				});
 			}
-			frm.reload_doc();
+			// Leave the form — the initiator may no longer have permission to open it.
+			frappe.set_route("List", frm.doctype);
 		},
 		error(r) {
 			frappe.msgprint({
@@ -88,7 +113,7 @@ hearth.setup_transfer_actions = function (frm, owner_field, transfer_method) {
 		frm.remove_custom_button(__("Transfer now"));
 	}
 
-	if (frm.doc.owner === frappe.session.user || (frm.has_perm && frm.has_perm("write"))) {
+	if (hearth._can_initiate_transfer(frm, owner_field) || (frm.has_perm && frm.has_perm("write"))) {
 		frm.set_df_property(owner_field, "read_only", 0);
 	}
 
